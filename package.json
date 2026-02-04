@@ -1,0 +1,16 @@
+{
+  "name": "github-webhook-proxy",
+  "version": "1.0.0",
+  "description": "Sanitization proxy for GitHub webhooks to Linear",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.3.0"
+  }
+}
