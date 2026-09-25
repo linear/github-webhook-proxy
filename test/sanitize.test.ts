@@ -398,4 +398,52 @@ describe("sanitizePayload", () => {
     const result = sanitizePayload("pull_request", payload);
     expect(result.pull_request?.head?.label).toBe("pr-123");
   });
+
+  test("sanitizes review body on pull_request_review event", () => {
+    const payload = {
+      action: "submitted",
+      repository: {
+        full_name: "acme/webapp",
+      },
+      pull_request: {
+        number: 456,
+        title: "Fix auth bug",
+        body: "Fixes ENG-123",
+        head: { ref: "fix/eng-123" },
+      },
+      review: {
+        body: "This leaks a secret, see ENG-999. Also our AWS key is AKIA...",
+      },
+    };
+
+    const result = sanitizePayload("pull_request_review", payload);
+    expect(result.review?.body).toBe("ENG-999");
+  });
+
+  test("sanitizes changes.body.from on edited pull_request_review event", () => {
+    const payload = {
+      action: "edited",
+      repository: {
+        full_name: "acme/webapp",
+      },
+      pull_request: {
+        number: 456,
+        title: "Fix auth bug",
+        body: "Fixes ENG-123",
+        head: { ref: "fix/eng-123" },
+      },
+      review: {
+        body: "Looks good, resolves ENG-999",
+      },
+      changes: {
+        body: {
+          from: "Previous review text references ENG-111 and internal-hostname.acme.corp",
+        },
+      },
+    };
+
+    const result = sanitizePayload("pull_request_review", payload);
+    expect(result.review?.body).toBe("Fixes ENG-999");
+    expect(result.changes?.body?.from).toBe("Part of ENG-111");
+  });
 });

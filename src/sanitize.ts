@@ -195,6 +195,14 @@ interface GitHubPullRequestPayload {
       label?: string;
     };
   };
+  review?: {
+    body?: string | null;
+  };
+  changes?: {
+    body?: {
+      from?: string;
+    };
+  };
 }
 
 /**
@@ -261,6 +269,18 @@ export function sanitizePayload(
         sanitized.pull_request.head.label = sanitizeBranch(prNumber);
       }
     }
+  }
+
+  // Sanitize pull_request_review fields (present on pull_request_review events)
+  if (sanitized.review?.body != null) {
+    sanitized.review.body = buildSanitizedBody(
+      extractIssueIds(sanitized.review.body)
+    );
+  }
+  if (sanitized.changes?.body?.from != null) {
+    sanitized.changes.body.from = buildSanitizedBody(
+      extractIssueIds(sanitized.changes.body.from)
+    );
   }
 
   return sanitized;
